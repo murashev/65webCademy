@@ -12,6 +12,64 @@ class Request {
    }
 }
 
+const products = {
+   'course-html': 'Курс по верстке',
+   'course-js': 'Курс по JavaScript',
+   'course-vue': 'Курс по Vue JS',
+   'course-php': 'Курс по PHP',
+   'course-wordpress': 'Курс по WordPress',
+}
+
+const statuses = {
+   'new': 'Новая',
+   'inwork': 'В работе',
+   'complete': 'Завершена',
+}
+
+const filter = loadFilter()
+
+function loadFilter() {
+   let filter = {
+      products: 'all',
+      status: 'all'
+   }
+
+   if (localStorage.getItem('filter')) {
+      filter = JSON.parse(localStorage.getItem('filter'))
+   }
+
+   return filter
+}
+
+function changeFilter(prop, value) {
+   filter[prop] = value
+   localStorage.setItem('filter', JSON.stringify(filter))
+   return filter
+}
+
+function filterRequests(filter) {
+   let filteredRequests;
+
+   // By Product
+   if (filter.products !== 'all') {
+      filteredRequests = requests.filter((request) => request.product === filter.products)
+   } else {
+      filteredRequests = [...requests]
+   }
+
+   // By Status
+   if (filter.status !== 'all') {
+      filteredRequests = filteredRequests.filter((request) => request.status === filter.status)
+   }
+
+   return prepareRequests(filteredRequests)
+}
+
+function countNewRequests() {
+   const newRequests = requests.filter((el) => el.status === "new")
+   return newRequests.length
+}
+
 function addRequest(formData) {
    // Определяем ID
    const id = requests.length > 0 ? requests[requests.length - 1]['id'] + 1 : 1;
@@ -35,21 +93,7 @@ function loadRequests() {
 }
 
 function getRequests() {
-   return prepareRequests(requests)
-}
-
-const products = {
-   'course-html': 'Курс по верстке',
-   'course-js': 'Курс по JavaScript',
-   'course-vue': 'Курс по Vue JS',
-   'course-php': 'Курс по PHP',
-   'course-wordpress': 'Курс по WordPress',
-}
-
-const statuses = {
-   'new': 'Новая',
-   'inwork': 'В работе',
-   'complete': 'Завершена',
+   return filterRequests(filter)
 }
 
 function prepareRequests(requests) {
@@ -72,12 +116,16 @@ function getRequestById(id) {
 
 function updateRequest(formData) {
    const request = getRequestById(formData.get('id'))
-   request.product = formData.get('product')
    request.name = formData.get('name')
    request.email = formData.get('email')
    request.phone = formData.get('phone')
+   request.product = formData.get('product')
    request.status = formData.get('status')
    saveRequests()
 }
 
-export { addRequest, getRequests, getRequestById, updateRequest }
+function getFilter() {
+   return { ...filter }
+}
+
+export { addRequest, getRequests, getRequestById, updateRequest, changeFilter, filterRequests, countNewRequests, getFilter }
